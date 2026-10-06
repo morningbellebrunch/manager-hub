@@ -119,9 +119,15 @@
   ::selection { background: rgba(153,201,97,0.35); }
 
   /* ── DEEP BACKGROUND ── */
+  /* Paint the page itself, so nothing behind Safari's toolbar ever shows through as black */
+  html { background-color: #f0f5f0; color-scheme: light; }
+  html[data-theme="dark"] { background-color: #0b1a20; color-scheme: dark; }
+
   .bg-canvas {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0;
+    height: 100vh;
+    height: 100lvh;
     z-index: -3;
     background: linear-gradient(160deg, #f0f5f0 0%, #e8f2f4 35%, #f5f7ee 70%, #faf8f0 100%);
   }
@@ -129,7 +135,9 @@
   /* Fine grain overlay — premium texture */
   .bg-grain {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0;
+    height: 100vh;
+    height: 100lvh;
     z-index: -1;
     pointer-events: none;
     opacity: 0.5;
