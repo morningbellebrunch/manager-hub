@@ -1151,32 +1151,32 @@
   <div class="section-label rise d2" id="tools">Tools</div>
   <div class="app-grid tint-tools rise d3">
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/Gardeners-Guide/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/Gardeners-Guide/">
       <div class="app-icon"><span>📗</span></div>
       <div class="app-label">Gardener's Guide</div>
     </a>
 
-    <a class="app-item" href="https://mthorp21.github.io/People-Labor/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://mthorp21.github.io/People-Labor/">
       <div class="app-icon"><span>🧑‍🌾</span></div>
       <div class="app-label">People Tool</div>
     </a>
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/Catering-Prep/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/Catering-Prep/">
       <div class="app-icon"><span>🍱</span></div>
       <div class="app-label">Catering Prep</div>
     </a>
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/Hiring-Guide/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/Hiring-Guide/">
       <div class="app-icon"><span>🌻</span></div>
       <div class="app-label">Hiring Guide</div>
     </a>
 
-    <a class="app-item" href="https://mthorp21.github.io/Morning-Belle-Done-Right-Visit/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://mthorp21.github.io/Morning-Belle-Done-Right-Visit/">
       <div class="app-icon"><span>✅</span></div>
       <div class="app-label">Done Right Visit</div>
     </a>
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/The-Rhythm/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/The-Rhythm/">
       <div class="app-icon"><span>📋</span></div>
       <div class="app-label">The Rhythm</div>
     </a>
@@ -1187,17 +1187,17 @@
   <div class="section-label lbl-leadership rise d3" id="leadership">Leadership Development</div>
   <div class="app-grid tint-leadership rise d3">
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/Leading-with-Accountability-/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/Leading-with-Accountability-/">
       <div class="app-icon"><span>🧭</span></div>
       <div class="app-label">Leading with Accountability</div>
     </a>
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/Five-Manager-Roles/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/Five-Manager-Roles/">
       <div class="app-icon"><span>🦸</span></div>
       <div class="app-label">5 Manager Roles</div>
     </a>
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/SIGI/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/SIGI/">
       <div class="app-icon"><span>🌰</span></div>
       <div class="app-label">SIGI</div>
     </a>
@@ -1208,17 +1208,17 @@
   <div class="section-label lbl-training rise d4" id="training">Training</div>
   <div class="app-grid tint-training rise d4">
 
-    <a class="app-item" href="https://morningbellebrunch.github.io/Greenhouse-Training-Hub/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://morningbellebrunch.github.io/Greenhouse-Training-Hub/">
       <div class="app-icon"><span>🪴</span></div>
       <div class="app-label">Greenhouse Training</div>
     </a>
 
-    <a class="app-item" href="https://mthorp21.github.io/Sales-Growth/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://mthorp21.github.io/Sales-Growth/">
       <div class="app-icon"><span>📈</span></div>
       <div class="app-label">Sales Growth</div>
     </a>
 
-    <a class="app-item" href="https://mthorp21.github.io/Guest-Recovery/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://mthorp21.github.io/Guest-Recovery/">
       <div class="app-icon"><span>🤝</span></div>
       <div class="app-label">Guest Recovery</div>
     </a>
@@ -1229,7 +1229,7 @@
   <div class="section-label lbl-marketing rise d4" id="marketing">Local Restaurant Marketing</div>
   <div class="app-grid tint-marketing rise d4">
 
-    <a class="app-item" href="https://mthorp21.github.io/Events-Catering-Hard-Launch/" target="_blank" rel="noopener">
+    <a class="app-item" href="https://mthorp21.github.io/Events-Catering-Hard-Launch/">
       <div class="app-icon"><span>🥂</span></div>
       <div class="app-label">Events &amp; Catering</div>
     </a>
@@ -1435,6 +1435,21 @@
 
   update();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(placePill);
+})();
+</script>
+<script>
+/* Returning from an app: put the manager back exactly where they were */
+(function () {
+  var KEY = 'mb-hub-y';
+  window.addEventListener('pagehide', function () { try { sessionStorage.setItem(KEY, String(window.scrollY)); } catch (e) {} });
+  function restore() {
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    if (!nav || nav.type !== 'back_forward') return;
+    var y = null; try { y = sessionStorage.getItem(KEY); } catch (e) {}
+    if (y !== null) window.scrollTo(0, parseInt(y, 10) || 0);
+  }
+  window.addEventListener('pageshow', function (e) { if (!e.persisted) restore(); });
+  window.addEventListener('load', restore);
 })();
 </script>
 </body>
