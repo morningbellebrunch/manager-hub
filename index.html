@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="v32">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -125,7 +125,7 @@
   /* Paint the page itself, so nothing behind Safari's toolbar ever shows through as black */
   html { background-color: #f0f5f0; color-scheme: light; }
   html[data-theme="dark"] { background-color: #0b1a20; color-scheme: dark; }
-  body { background-color: #f0f5f0; }
+  body { background-color: #f0f5f0; isolation: isolate; } /* v3.2 fix: lets the fixed orbs paint above the body color */
   html[data-theme="dark"] body { background-color: #0b1a20; }
 
   .bg-canvas {
@@ -1099,6 +1099,88 @@
   .app-item.is-soon:hover .app-icon, .app-item.is-soon:active .app-icon { transform: none; }
   .app-soon { display: block; margin-top: 3px; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); text-shadow: none; }
 
+
+  /* ================================================================
+     v3.2 GLASS. Clear glass that bends the living background.
+     html.v32 switches it on. html.gl means the WebGL refraction canvas is running.
+     ================================================================ */
+  #glc { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100lvh; z-index: -2; display: none; pointer-events: none; }
+  html.v32.gl #glc { display: block; }
+  html.v32.gl .orb, html.v32.gl .bg-canvas { display: none; }
+
+  html.v32 {
+    --glass-edge:
+      inset 0 0 0 1px rgba(255,255,255,0.42),
+      inset 0 1.5px 0 rgba(255,255,255,1),
+      inset 0 -1.5px 0 rgba(255,255,255,0.6),
+      inset 7px 0 12px -10px rgba(255,255,255,0.9),
+      inset -7px 0 12px -10px rgba(255,255,255,0.9),
+      inset 0 -14px 22px -14px rgba(255,255,255,0.75),
+      inset 0 14px 22px -16px rgba(60,92,104,0.22);
+    --tint-base: 0.05; --tint-alpha: 0.48;
+    --dock-glass: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));
+    --header-glass: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.08));
+  }
+  html.v32[data-theme="dark"] {
+    --glass-edge:
+      inset 0 0 0 1px rgba(255,255,255,0.16),
+      inset 0 1.5px 0 rgba(255,255,255,0.55),
+      inset 0 -1.5px 0 rgba(255,255,255,0.14),
+      inset 7px 0 12px -10px rgba(255,255,255,0.3),
+      inset -7px 0 12px -10px rgba(255,255,255,0.3),
+      inset 0 -14px 22px -14px rgba(255,255,255,0.16),
+      inset 0 14px 22px -16px rgba(0,0,0,0.4);
+    --surface: rgba(9,20,25,0.14);
+    --tint-base: 0.07; --tint-alpha: 0.55;
+    --dock-glass: linear-gradient(180deg, rgba(20,40,48,0.20), rgba(10,22,27,0.30));
+    --header-glass: linear-gradient(180deg, rgba(13,28,34,0.45), rgba(13,28,34,0.20));
+  }
+
+  /* Clear glass: the shader bends the background, so CSS blur steps aside */
+  html.v32.gl .app-icon, html.v32.gl .app-item:hover .app-icon,
+  html.v32.gl.refract .app-icon, html.v32.gl.refract .app-item:hover .app-icon,
+  html.v32.gl .theme-track, html.v32.gl .inspire-card, html.v32.gl .mike-quote,
+  html.v32.gl .cg-contact, html.v32.gl .inspire-icon-wrap, html.v32.gl .cg-form-link {
+    backdrop-filter: none; -webkit-backdrop-filter: none; }
+  html.v32.gl .site-header::before { backdrop-filter: blur(5px) saturate(170%) brightness(1.05); -webkit-backdrop-filter: blur(5px) saturate(170%) brightness(1.05); }
+  html.v32.gl #dock { backdrop-filter: blur(1.5px) saturate(160%); -webkit-backdrop-filter: blur(1.5px) saturate(160%); }
+  html.v32 #dock a { text-shadow: var(--label-shadow); }
+
+  html.v32 .app-icon { background:
+      linear-gradient(168deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.03) 34%, rgba(255,255,255,0) 56%, rgba(255,255,255,0.08) 100%),
+      radial-gradient(130% 80% at 50% 108%, rgba(var(--tint), var(--tint-alpha)) 0%, rgba(var(--tint), 0) 78%),
+      linear-gradient(rgba(var(--tint), var(--tint-base)), rgba(var(--tint), var(--tint-base))),
+      var(--surface); }
+  html.v32 .theme-track { background: linear-gradient(170deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02)); }
+  html.v32[data-theme="dark"] .theme-track { background: rgba(255,255,255,0.03); }
+  html.v32 .dock-pill { background: linear-gradient(170deg, rgba(255,255,255,0.42), rgba(255,255,255,0.06)), rgba(var(--pill, 153,201,97), 0.24);
+    box-shadow: inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -8px 14px -6px rgba(var(--pill, 153,201,97), 0.55), 0 6px 18px rgba(var(--pill, 153,201,97), 0.42); }
+  html.v32[data-theme="dark"] .dock-pill { background: linear-gradient(170deg, rgba(255,255,255,0.12), rgba(255,255,255,0.01)), rgba(var(--pill, 153,201,97), 0.26);
+    box-shadow: inset 0 1.5px 1px rgba(255,255,255,0.3), inset 0 -8px 14px -6px rgba(var(--pill, 153,201,97), 0.6), 0 6px 20px rgba(var(--pill, 153,201,97), 0.4); }
+
+  /* Cards: clear in both themes */
+  html.v32 .inspire-card, html.v32 .mike-quote { background:
+      linear-gradient(170deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.06) 100%), rgba(255,255,255,0.03); }
+  html.v32[data-theme="dark"] .inspire-card, html.v32[data-theme="dark"] .mike-quote { background:
+      linear-gradient(170deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 45%, rgba(255,255,255,0.02) 100%), rgba(9,20,25,0.16); }
+  html.v32 .inspire-icon-wrap { background: linear-gradient(165deg, rgba(255,255,255,0.28), rgba(255,255,255,0.02) 60%), rgba(60,92,104,0.05); }
+  html.v32[data-theme="dark"] .inspire-icon-wrap { background: rgba(255,255,255,0.05); }
+  html.v32 .cg-contact::before { opacity: 0.4; }
+  html.v32 .cg-contact.shelby { background: rgba(252,130,109,0.12); }
+  html.v32 .cg-contact.erica  { background: rgba(155,196,188,0.15); }
+  html.v32 .cg-contact.caitie { background: rgba(153,201,97,0.12); }
+  html.v32 .cg-contact.wes    { background: rgba(100,149,200,0.12); }
+  html.v32 .cg-contact.mike   { background: rgba(251,175,65,0.12); }
+  html.v32[data-theme="dark"] .cg-contact.shelby { background: linear-gradient(rgba(252,130,109,0.16), rgba(252,130,109,0.16)), rgba(9,20,25,0.18); }
+  html.v32[data-theme="dark"] .cg-contact.erica  { background: linear-gradient(rgba(155,196,188,0.16), rgba(155,196,188,0.16)), rgba(9,20,25,0.18); }
+  html.v32[data-theme="dark"] .cg-contact.caitie { background: linear-gradient(rgba(153,201,97,0.14), rgba(153,201,97,0.14)), rgba(9,20,25,0.18); }
+  html.v32[data-theme="dark"] .cg-contact.wes    { background: linear-gradient(rgba(100,149,200,0.16), rgba(100,149,200,0.16)), rgba(9,20,25,0.18); }
+  html.v32[data-theme="dark"] .cg-contact.mike   { background: linear-gradient(rgba(251,175,65,0.14), rgba(251,175,65,0.14)), rgba(9,20,25,0.18); }
+
+  /* No WebGL: keep a light frost so text still reads */
+  html.v32:not(.gl) .inspire-card, html.v32:not(.gl) .mike-quote, html.v32:not(.gl) .cg-contact {
+    backdrop-filter: blur(6px) saturate(220%) brightness(1.08); -webkit-backdrop-filter: blur(6px) saturate(220%) brightness(1.08); }
+
   /* ── REDUCED MOTION ── */
   @media (prefers-reduced-motion: reduce) {
     .orb, .rainbow-bar, .header-logo { animation: none !important; }
@@ -1119,6 +1201,7 @@
     <feDisplacementMap in="SourceGraphic" in2="map" scale="15" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
+<canvas id="glc" aria-hidden="true"></canvas>
 <div class="bg-canvas"></div>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
@@ -1344,6 +1427,202 @@
 })();
 </script>
 <script>
+/* v3.2: spring motion. Edges move on their own springs, so shapes stretch and settle like liquid. */
+window.MBJelly = (function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function spring(t, w, z) {
+    if (z < 1) { var wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t)); }
+    return 1 - Math.exp(-w * t) * (1 + w * t);
+  }
+  function edges(el, l0, w0, l1, w1, ms) {
+    el.style.left = l1 + 'px'; el.style.width = w1 + 'px';
+    if (reduce.matches || !el.animate || w0 <= 0 || (l0 === l1 && w0 === w1)) return;
+    var right = (l1 + w1 / 2) >= (l0 + w0 / 2);
+    var L0 = l0, R0 = l0 + w0, L1 = l1, R1 = l1 + w1, base = Math.max(w0, w1), frames = [], N = 42, D = (ms || 700) / 1000;
+    for (var i = 0; i <= N; i++) {
+      var t = i / N * D;
+      var lead = spring(t, 24, 0.52), trail = spring(t, 13, 0.62);
+      var L = L0 + (L1 - L0) * (right ? trail : lead);
+      var R = R0 + (R1 - R0) * (right ? lead : trail);
+      if (R - L < 8) R = L + 8;
+      var stretch = Math.max(0, (R - L - base) / base);
+      var sy = 1 - Math.min(0.16, stretch * 0.2);
+      frames.push({ left: L + 'px', width: (R - L) + 'px', transform: 'scaleY(' + sy.toFixed(3) + ')' });
+    }
+    el.animate(frames, { duration: ms || 700, easing: 'linear' });
+  }
+  function pill(p, fromEl, toEl) { edges(p, fromEl.offsetLeft, fromEl.offsetWidth, toEl.offsetLeft, toEl.offsetWidth, 700); }
+  return { spring: spring, edges: edges, pill: pill, reduce: reduce };
+})();
+</script>
+
+<script>
+/* ===== v3.2 REFRACTION: one WebGL canvas draws the canvas, the orbs, and the bend inside every glass shape.
+   Because we draw the background ourselves, the bend works on iPhone too. ===== */
+window.MBGlass = (function () {
+  var root = document.documentElement;
+  var cv = document.getElementById('glc');
+  var gl = null;
+  try { gl = cv.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false, preserveDrawingBuffer: false }); } catch (e) {}
+  if (!gl) return { start: function () {}, stop: function () {}, ok: false };
+
+  var MAX = 20;
+  var VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+  var FS = [
+    'precision highp float;',
+    'uniform vec2 uRes;uniform float uDpr;uniform float uH;uniform float uDark;',
+    'uniform vec4 uOrb[5];uniform vec3 uOrbC[5];',
+    'uniform vec4 uRect[' + MAX + '];uniform vec4 uMeta[' + MAX + '];uniform float uN;',
+    'vec3 base(vec2 p){',
+    ' if(uDark<0.5){',
+    '  vec2 dir=vec2(0.342,0.940);float L=abs(uRes.x*0.342)+abs(uRes.y*0.940);',
+    '  float t=clamp(dot(p-uRes*0.5,dir)/L+0.5,0.,1.);',
+    '  vec3 c0=vec3(240.,245.,240.)/255.,c1=vec3(232.,242.,244.)/255.,c2=vec3(245.,247.,238.)/255.,c3=vec3(250.,248.,240.)/255.;',
+    '  if(t<0.35)return mix(c0,c1,t/0.35);',
+    '  if(t<0.7)return mix(c1,c2,(t-0.35)/0.35);',
+    '  return mix(c2,c3,(t-0.7)/0.3);',
+    ' }',
+    ' float t=clamp(p.y/uRes.y,0.,1.);',
+    ' vec3 a=vec3(13.,28.,34.)/255.,b=vec3(10.,20.,24.)/255.,d=vec3(11.,26.,32.)/255.;',
+    ' vec3 c=t<0.55?mix(a,b,t/0.55):mix(b,d,(t-0.55)/0.45);',
+    ' float r2=length((p-vec2(0.92*uRes.x,0.08*uRes.y))/vec2(1000.,800.));c=mix(c,vec3(20.,40.,47.)/255.,clamp(1.-r2/0.62,0.,1.));',
+    ' float r1=length((p-vec2(0.12*uRes.x,-0.10*uRes.y))/vec2(1200.,900.));c=mix(c,vec3(23.,50.,60.)/255.,clamp(1.-r1/0.60,0.,1.));',
+    ' return c;',
+    '}',
+    'vec3 bg(vec2 p){',
+    ' vec3 c=base(p);',
+    ' for(int i=0;i<5;i++){vec4 o=uOrb[i];float d=length(p-o.xy);float a=o.w*(1.-smoothstep(-0.3*o.z,o.z+70.,d));c=mix(c,uOrbC[i],a);}',
+    ' return c;',
+    '}',
+    'float sdb(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return min(max(q.x,q.y),0.)+length(max(q,0.))-r;}',
+    'void main(){',
+    ' vec2 p=vec2(gl_FragCoord.x,uH-gl_FragCoord.y)/uDpr;',
+    ' vec3 col=bg(p);',
+    ' float hit=-1.;vec4 R=vec4(0.);vec4 M=vec4(0.);float dd=0.;',
+    ' for(int i=0;i<' + MAX + ';i++){',
+    '  if(float(i)>=uN)break;',
+    '  vec4 r=uRect[i];vec2 h=r.zw*0.5;vec2 c=r.xy+h;float rad=min(uMeta[i].x,min(h.x,h.y));',
+    '  float d=sdb(p-c,h,rad);',
+    '  if(d<0.){hit=float(i);R=r;M=uMeta[i];M.x=rad;dd=d;}',
+    ' }',
+    ' if(hit>=0.){',
+    '  vec2 h=R.zw*0.5;vec2 c=R.xy+h;float s=M.y;',
+    '  vec2 g=vec2(sdb(p+vec2(1.,0.)-c,h,M.x)-sdb(p-vec2(1.,0.)-c,h,M.x),sdb(p+vec2(0.,1.)-c,h,M.x)-sdb(p-vec2(0.,1.)-c,h,M.x));',
+    '  vec2 n=length(g)>0.0001?normalize(g):vec2(0.);',
+    '  float depth=-dd;float W=max(4.,min(M.z,min(h.x,h.y)));',
+    '  float t=clamp(depth/W,0.,1.);float bend=(1.-t)*(1.-t);',
+    '  float amt=bend*W*3.4*s;',
+    '  vec2 q=c+(p-c)*(1.-0.11*s);',
+    '  vec3 refr=vec3(bg(q+n*amt).r,bg(q+n*amt*1.25).g,bg(q+n*amt*1.5).b);',
+    '  float lum=dot(refr,vec3(0.299,0.587,0.114));refr=mix(vec3(lum),refr,1.0+0.3*s);',
+    '  if(uDark<0.5){refr=mix(refr,vec3(1.),0.02*s);}else{refr*=1.0-0.03*s;}',
+    '  col=mix(col,refr,smoothstep(0.,1.2,depth)*clamp(s,0.,1.));',
+    ' }',
+    ' gl_FragColor=vec4(col,1.);',
+    '}'
+  ].join('\n');
+
+  function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(s)); return null; } return s; }
+  var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+  if (!vs || !fs) return { start: function () {}, stop: function () {}, ok: false };
+  var pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return { start: function () {}, stop: function () {}, ok: false };
+  gl.useProgram(pr);
+  var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var aLoc = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(aLoc); gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+  var U = {}; ['uRes', 'uDpr', 'uH', 'uDark', 'uOrb', 'uOrbC', 'uRect', 'uMeta', 'uN'].forEach(function (k) { U[k] = gl.getUniformLocation(pr, k); });
+
+  /* The orbs: same sizes, colors, timings, and waypoints as the kit's CSS orbs */
+  var ORBS = [
+    { s: 520, c: [153, 201, 97], o: [0.8, 0.30], d: 12, k: [[-10, -8], [20, 55], [60, 15], [30, 75]] },
+    { s: 440, c: [60, 92, 104], o: [0.6, 0.45], d: 15, k: [[10, 70], [55, 30], [5, 10], [70, 65]] },
+    { s: 400, c: [251, 175, 65], o: [0.55, 0.20], d: 11, k: [[65, 5], [10, 40], [50, 70], [80, 25]] },
+    { s: 340, c: [252, 130, 109], o: [0.5, 0.18], d: 13, k: [[75, 60], [20, 80], [45, 20], [10, 50]] },
+    { s: 300, c: [155, 196, 188], o: [0.45, 0.22], d: 14, k: [[40, 40], [70, 10], [15, 65], [55, 50]] }
+  ];
+  var orbC = new Float32Array(15); ORBS.forEach(function (o, i) { orbC[i * 3] = o.c[0] / 255; orbC[i * 3 + 1] = o.c[1] / 255; orbC[i * 3 + 2] = o.c[2] / 255; });
+  gl.uniform3fv(U.uOrbC, orbC);
+  var orbU = new Float32Array(20), rectU = new Float32Array(MAX * 4), metaU = new Float32Array(MAX * 4);
+  function ease(x) { return x * x * (3 - 2 * x); }
+
+  var dpr = 1, W = 0, H = 0, vh = 0;
+  /* Only rebuild the canvas when its size truly changes. The canvas is 100lvh, so the iPhone toolbar
+     collapsing during a scroll no longer resets it or makes the orbs jump. */
+  function size() {
+    var d = Math.min(window.devicePixelRatio || 1, 1.5), w = cv.clientWidth, h = cv.clientHeight;
+    if (w === W && h === H && d === dpr) return;
+    dpr = d; W = w; H = h; vh = h;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    gl.viewport(0, 0, cv.width, cv.height);
+  }
+  window.addEventListener('resize', size);
+
+  var lensCards = [], lensChrome = [];
+  function collect() {
+    lensCards = Array.prototype.slice.call(document.querySelectorAll('.app-icon, .inspire-card, .cg-contact, .mike-quote'));
+    lensChrome = ['.theme-track', '.site-header', '#dock'].map(function (s) { return document.querySelector(s); }).filter(Boolean);
+  }
+
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var running = false, t0 = performance.now(), raf = 0;
+  /* Scrolling surfaces: the browser moves the page a frame ahead of anything we draw, so the bend
+     would trail the cards and swim. It eases out while the page moves and back in when it rests.
+     The header, dock, and pills never move, so they keep their bend the whole time. */
+  var lastScroll = -1e9, cardFade = 1;
+  window.addEventListener('scroll', function () { lastScroll = performance.now(); }, { passive: true });
+  window.addEventListener('touchmove', function () { lastScroll = performance.now(); }, { passive: true });
+  function frame(now) {
+    if (!running) return;
+    raf = requestAnimationFrame(frame);
+    if (document.hidden) return;
+    if (!W) size();
+    var t = still.matches ? 0 : Math.max(0, now - t0) / 1000, dark = root.getAttribute('data-theme') === 'dark';
+    var vw = W;
+    ORBS.forEach(function (o, i) {
+      var ph = (t % o.d) / o.d * 4, seg = Math.floor(ph), lt = ease(ph - seg);
+      var a = o.k[seg % 4], b = o.k[(seg + 1) % 4];
+      var top = a[0] + (b[0] - a[0]) * lt, left = a[1] + (b[1] - a[1]) * lt;
+      orbU[i * 4] = left / 100 * vw + o.s / 2; orbU[i * 4 + 1] = top / 100 * vh + o.s / 2;
+      orbU[i * 4 + 2] = o.s / 2; orbU[i * 4 + 3] = dark ? o.o[1] : o.o[0];
+    });
+    var hp = parseFloat(root.style.getPropertyValue('--hp')) || 0;
+    var n = 0;
+    function add(el, strength, rim) {
+      if (n >= MAX || strength <= 0.01) return;
+      var r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2 || r.bottom < -40 || r.top > H + 40) return;
+      if (el.style.visibility === 'hidden') return;
+      var rad = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+      rectU[n * 4] = r.left; rectU[n * 4 + 1] = r.top; rectU[n * 4 + 2] = r.width; rectU[n * 4 + 3] = r.height;
+      metaU[n * 4] = rad; metaU[n * 4 + 1] = strength;
+      metaU[n * 4 + 2] = rim || Math.max(10, Math.min(38, Math.min(r.width, r.height) * 0.36)); metaU[n * 4 + 3] = 0;
+      n++;
+    }
+    var moving = (now - lastScroll) < 160;
+    cardFade += ((moving ? 0 : 1) - cardFade) * (moving ? 0.45 : 0.1);
+    if (cardFade < 0.02) cardFade = 0;
+    /* Chrome first: the header, dock, and switch always keep their bend */
+    lensChrome.forEach(function (el) {
+      if (el.classList.contains('site-header')) add(el, hp, 14);
+      else add(el, 1);
+    });
+    lensCards.forEach(function (el) { add(el, cardFade); });
+    gl.uniform2f(U.uRes, W, H); gl.uniform1f(U.uDpr, dpr); gl.uniform1f(U.uH, cv.height); gl.uniform1f(U.uDark, dark ? 1 : 0);
+    gl.uniform4fv(U.uOrb, orbU); gl.uniform4fv(U.uRect, rectU); gl.uniform4fv(U.uMeta, metaU); gl.uniform1f(U.uN, n);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  return {
+    ok: true,
+    start: function () { if (running) return; collect(); running = true; root.classList.add('gl'); size(); raf = requestAnimationFrame(frame); },
+    stop: function () { running = false; cancelAnimationFrame(raf); root.classList.remove('gl'); },
+    refresh: collect
+  };
+})();
+
+if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGlass.ok) MBGlass.start();
+</script>
+<script>
 /* Theme switch: a tap overrides the phone setting and is remembered on this device */
 (function () {
   var root = document.documentElement;
@@ -1398,6 +1677,7 @@
   }
   function setActive(i) {
     if (i === current) return;
+    var prev = current;
     current = i;
     links.forEach(function (a, n) {
       var on = n === i;
@@ -1406,7 +1686,7 @@
       a.style.setProperty('--on', isDark() ? a.dataset.onDark : a.dataset.on);
     });
     pill.style.setProperty('--pill', links[i].dataset.c);
-    trackPill(520);
+    if (prev > -1 && links[prev] && root.classList.contains('v32') && window.MBJelly) MBJelly.pill(pill, links[prev], links[i]); else trackPill(520);
   }
   function setCompact(c) {
     if (dock.classList.contains('compact') === c) return;
