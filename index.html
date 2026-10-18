@@ -1092,6 +1092,13 @@
   }
   html[data-theme="dark"] .theme-switch:active .theme-knob { left: 29px; }
 
+
+  /* Coming soon tiles: visible, quieter, not tappable */
+  .app-item.is-soon { cursor: default; }
+  .app-item.is-soon .app-icon { opacity: 0.6; filter: saturate(0.7); }
+  .app-item.is-soon:hover .app-icon, .app-item.is-soon:active .app-icon { transform: none; }
+  .app-soon { display: block; margin-top: 3px; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); text-shadow: none; }
+
   /* ── REDUCED MOTION ── */
   @media (prefers-reduced-motion: reduce) {
     .orb, .rainbow-bar, .header-logo { animation: none !important; }
@@ -1234,9 +1241,14 @@
       <div class="app-label">Events &amp; Catering</div>
     </a>
 
-    <a class="app-item" href="#" data-pending="true" aria-disabled="true" onclick="return false">
+    <a class="app-item is-soon" href="#" data-pending="true" aria-disabled="true" aria-label="LRM4GM, coming soon" onclick="return false">
       <div class="app-icon"><span>📣</span></div>
-      <div class="app-label">LRM4GM</div>
+      <div class="app-label">LRM4GM<span class="app-soon">Coming soon</span></div>
+    </a>
+
+    <a class="app-item" href="https://morningbellebrunch.github.io/Catering-Events-Competition-/">
+      <div class="app-icon"><span>🏆</span></div>
+      <div class="app-label">Competition Tracker</div>
     </a>
 
   </div>
