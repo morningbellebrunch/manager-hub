@@ -17,6 +17,24 @@
   document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.setAttribute('content', c); });
 })();
 </script>
+<script>
+/* Opening drop: once per session, never on a return from an app, never with reduced motion */
+(function () {
+  try {
+    var r = document.documentElement;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (sessionStorage.getItem('mb-intro')) return;
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    if (nav && nav.type === 'back_forward') return;
+    if (location.hash) return;
+    var ref = document.referrer || '';
+    if (/^https:\/\/(morningbellebrunch|mthorp21)\.github\.io\//.test(ref) && ref.indexOf('/manager-hub') === -1) return;
+    sessionStorage.setItem('mb-intro', '1');
+    r.classList.add('intro-on', 'intro-hold', 'intro-hide');
+    if (!window.__MB_INTRO_TEST) setTimeout(function () { r.classList.remove('intro-on', 'intro-hold', 'intro-hide'); var el = document.getElementById('intro'); if (el) el.remove(); window.dispatchEvent(new Event('mb-intro-glass')); }, 6500);
+  } catch (e) {}
+})();
+</script>
 <title>Morning Belle | Manager Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -276,7 +294,9 @@
     height: 58px;
   }
   .header-logo {
-    font-size: 1.45rem;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
     filter: drop-shadow(0 0 10px rgba(153,201,97,0.7));
     animation: logoBreath 5s ease-in-out infinite;
   }
@@ -1181,6 +1201,61 @@
   html.v32:not(.gl) .inspire-card, html.v32:not(.gl) .mike-quote, html.v32:not(.gl) .cg-contact {
     backdrop-filter: blur(6px) saturate(220%) brightness(1.08); -webkit-backdrop-filter: blur(6px) saturate(220%) brightness(1.08); }
 
+  /* ── OPENING DROP (v3.21, Hub only) ──
+     Built from still glass pieces that only move and fade. The phone's compositor plays it,
+     so it stays smooth even while the Hub is still loading underneath. */
+  .header-logo svg, .foot-leaf svg { display: block; width: 100%; height: 100%; }
+  .foot-leaf { display: inline-block; width: 12px; height: 12px; }
+  #intro { display: none; }
+  html.intro-on .header-logo { opacity: 0; }
+  html.intro-hold .rise { animation-play-state: paused; }
+  html.intro-hide .site-header, html.intro-hide .page-wrap, html.intro-hide #dock, html.intro-hide .orb, html.intro-hide .bg-grain { visibility: hidden; }
+  html.intro-on #intro {
+    display: block; position: fixed; inset: 0; z-index: 1000; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    --main: #99C961; --accent: #FC826D; --second: #EEF6F8; --ground: #0B1A20; --ring: rgba(238,246,248,0.55);
+    --body-a: color-mix(in srgb, #99C961 34%, #0B1A20); --body-b: color-mix(in srgb, #0B1A20 90%, #EEF6F8);
+    --shade: rgba(0,0,0,0.4); --inner: rgba(0,0,0,0.35); --cool: color-mix(in srgb, #EEF6F8 72%, #0B1A20);
+    animation: introSafety 0.3s ease 6.2s forwards;
+  }
+  html.intro-on[data-theme="light"] #intro {
+    --second: #ffffff; --ground: #f0f5f0; --ring: rgba(60,92,104,0.34);
+    --body-a: color-mix(in srgb, #99C961 46%, #ffffff); --body-b: rgba(255,255,255,0.6);
+    --shade: rgba(40,70,84,0.22); --inner: rgba(40,70,84,0.10); --cool: #9bc4bc;
+  }
+  @keyframes introSafety { to { opacity: 0; visibility: hidden; } }
+  .intro-bg { position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 50%, color-mix(in srgb, var(--main) 14%, var(--ground)), var(--ground) 70%); }
+  .intro-stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; margin: -960px 0 0 -540px; transform-origin: 50% 50%; pointer-events: none; visibility: hidden; }
+  .intro-stage.play { visibility: visible; }
+  .d-ring, .d-bead, .d-body, .d-tile, .d-clip, .d-leaves, .d-leaves svg, .d-sheen, .d-drop { will-change: transform, opacity; }
+  .d-ring { position: absolute; left: 260px; top: 680px; width: 560px; height: 560px; border-radius: 50%; opacity: 0;
+    box-shadow: 0 0 0 3px var(--ring), 0 0 14px 1px color-mix(in srgb, var(--main) 45%, transparent); }
+  .d-bead { position: absolute; left: 0; top: 0; border-radius: 50%; opacity: 0;
+    background: radial-gradient(circle at 34% 30%, var(--second) 0%, color-mix(in srgb, var(--second) 35%, transparent) 40%, color-mix(in srgb, var(--main) 40%, transparent) 72%, transparent 74%);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--second) 45%, transparent), 0 0 14px color-mix(in srgb, var(--main) 45%, transparent); }
+  html.intro-on[data-theme="light"] .d-bead { box-shadow: inset 0 0 0 2px rgba(60,92,104,0.35), 0 0 14px color-mix(in srgb, var(--main) 45%, transparent); }
+  .d-body { position: absolute; left: 260px; top: 680px; width: 560px; height: 560px; transform-origin: 50% 50%; }
+  .d-glow, .d-rim { --rim: conic-gradient(from 200deg, var(--second) 0%, color-mix(in srgb, var(--main) 70%, var(--second)) 10%, color-mix(in srgb, var(--second) 18%, transparent) 26%, color-mix(in srgb, var(--second) 10%, transparent) 38%, var(--accent) 48%, color-mix(in srgb, var(--second) 70%, var(--accent)) 54%, color-mix(in srgb, var(--second) 14%, transparent) 66%, var(--main) 80%, var(--second) 92%, var(--second) 100%); }
+  .d-tile { position: absolute; inset: 0; border-radius: 150px; opacity: 0; }
+  .t-depth { position: absolute; inset: -8px; border-radius: 158px;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--second) 14%, transparent), 0 34px 70px var(--shade), 0 0 80px 16px color-mix(in srgb, var(--main) 38%, transparent); }
+  .d-rim { position: absolute; inset: 0; border-radius: inherit; background: var(--rim); }
+  .t-glass { position: absolute; inset: 18px; border-radius: 132px; background: radial-gradient(120% 85% at 50% 112%, var(--body-a), var(--body-b) 72%);
+    box-shadow: inset 0 4px 3px color-mix(in srgb, var(--second) 55%, transparent), inset 0 -26px 46px var(--inner), inset 0 0 0 2px color-mix(in srgb, var(--second) 22%, transparent),
+      inset 16px 14px 28px -10px color-mix(in srgb, var(--second) 60%, transparent), inset -18px -20px 36px -12px color-mix(in srgb, var(--main) 75%, transparent); }
+  .d-clip { position: absolute; inset: 18px; border-radius: 132px; overflow: hidden; opacity: 0; }
+  .d-leaves { position: absolute; left: 19%; top: 17%; width: 62%; height: 62%; transform-origin: 50% 55%; }
+  .d-leaves svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .l-main { fill: var(--main); } .l-warm { fill: var(--accent); } .l-cool { fill: var(--cool); }
+  .l-hi { fill: color-mix(in srgb, var(--main) 55%, var(--second)); opacity: 0.5; }
+  .d-sheen { position: absolute; top: -30%; left: 0; width: 34%; height: 160%; opacity: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--second) 34%, transparent), transparent); }
+  .d-drop { position: absolute; inset: 0; transform: rotate(45deg); border-radius: 26px 280px 280px 280px; }
+  .d-drop .d-rim { box-shadow: 0 30px 60px var(--shade), 0 0 60px 10px color-mix(in srgb, var(--main) 30%, transparent); }
+  .p-glass { position: absolute; inset: 24px; border-radius: 4px 256px 256px 256px; overflow: hidden; background: radial-gradient(120% 85% at 50% 100%, var(--body-a), var(--body-b) 72%);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--second) 30%, transparent), inset 18px 18px 30px -12px color-mix(in srgb, var(--second) 70%, transparent), inset -20px -20px 36px -12px color-mix(in srgb, var(--main) 75%, transparent); }
+  .p-leaf { position: absolute; left: 50%; top: 50%; width: 560px; height: 560px; margin: -280px 0 0 -280px; transform: rotate(-45deg) translateY(30px); }
+  .p-leaf svg { width: 100%; height: 100%; display: block; }
+  .p-orb { position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(40% 36% at 30% 50%, color-mix(in srgb, var(--second) 85%, transparent), transparent 70%), radial-gradient(30% 26% at 72% 70%, color-mix(in srgb, var(--accent) 40%, transparent), transparent 72%); }
+
   /* ── REDUCED MOTION ── */
   @media (prefers-reduced-motion: reduce) {
     .orb, .rainbow-bar, .header-logo { animation: none !important; }
@@ -1201,6 +1276,135 @@
     <feDisplacementMap in="SourceGraphic" in2="map" scale="15" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
+<!-- OPENING DROP: the leaf falls as a glass drop and settles into the header. Hub only. -->
+<div id="intro" aria-hidden="true"><div class="intro-bg"></div><div class="intro-stage"></div></div>
+<script>
+(function () {
+  var root = document.documentElement, box = document.getElementById('intro');
+  if (!root.classList.contains('intro-on')) { if (box) box.remove(); return; }
+  var LEAF = 'M85.64 200.08 C76.47 198.96 68.17 195.93 56.22 189.34 C44.12 182.67 34.99 178.86 24.97 176.30 C23.33 175.88 21.73 175.53 21.43 175.53 C21.13 175.53 20.82 175.43 20.74 175.31 C20.44 174.82 28.71 164.63 33.62 159.43 C42.27 150.26 49.74 144.21 57.30 140.24 C66.87 135.23 77.84 133.52 88.89 135.32 C98.17 136.83 107.73 140.88 116.23 146.90 C121.09 150.35 125.52 154.39 133.20 162.40 C136.14 165.46 137.36 166.34 139.66 167.05 C143.41 168.21 145.25 167.26 144.85 164.37 C144.66 162.99 143.33 160.55 142.03 159.20 C140.77 157.88 138.84 156.68 132.21 153.06 C125.83 149.58 122.63 147.63 118.38 144.61 C105.77 135.66 94.31 122.15 87.52 108.24 C80.90 94.68 79.24 81.44 82.04 64.54 C83.27 57.07 85.24 48.80 87.16 43.04 C91.88 28.85 100.71 14.54 111.83 3.06 C113.47 1.38 114.89 -0.00 114.99 -0.00 C115.10 -0.00 115.93 1.41 116.84 3.14 C117.75 4.87 118.70 6.59 118.95 6.95 C119.19 7.32 120.25 8.91 121.29 10.49 C125.60 17.03 133.31 26.65 140.81 34.83 C145.63 40.09 147.64 42.35 151.06 46.32 C161.95 58.98 169.34 69.40 172.41 76.39 C177.12 87.16 177.54 97.69 173.77 111.11 C171.24 120.13 169.02 125.11 162.12 137.20 C158.81 143.00 156.65 147.17 155.57 149.83 C153.52 154.87 153.06 159.39 154.27 162.76 C155.95 167.49 159.80 172.71 166.54 179.40 C169.87 182.71 175.49 187.71 178.33 189.89 C179.04 190.44 179.63 190.97 179.64 191.07 C179.65 191.18 174.54 191.26 168.30 191.26 L156.95 191.26 L155.81 188.99 C155.18 187.74 154.06 185.81 153.32 184.68 C148.89 177.98 144.31 174.78 139.16 174.78 C137.17 174.79 133.65 175.61 132.62 176.32 C132.19 176.62 130.15 178.51 128.09 180.52 C123.07 185.41 117.38 190.02 111.99 193.55 C105.13 198.04 97.65 200.29 89.92 200.21 C87.98 200.19 86.05 200.13 85.64 200.08 Z';
+  var HI = 'M106 18 C88 40 76 64 80 96 C84 120 100 140 116 160 C104 132 96 104 100 72 C102 50 106 34 106 18 Z';
+  /* Seconds. The drop falls for HIT_R from above the screen, the splash plays SLOW times slower than the film, then the leaf flies home from F0 to D. */
+  var HIT = 0.38, HIT_R = 0.7, SLOW = 1.2, F0 = 1.8, D = 2.4, N = 145, CX = 540, CY = 960;
+  var BEADS = [[-166, 1050, 40], [-140, 1250, 30], [-114, 1380, 46], [-86, 1450, 34], [-60, 1320, 42], [-34, 1180, 30], [-10, 1000, 38]];
+  function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function seg(t, a, b) { return clamp01((t - a) / (b - a)); }
+  function lerp(a, b, p) { return a + (b - a) * p; }
+  function eo(x) { return 1 - Math.pow(1 - x, 3); }
+  function eio(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function eob(x, s) { s = s || 1.4; var c = s + 1; return 1 + c * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2); }
+  function f(n) { return n.toFixed(3); }
+
+  var stage = box.querySelector('.intro-stage'), html = '';
+  for (var i = 0; i < 3; i++) html += '<div class="d-ring"></div>';
+  BEADS.forEach(function (b) { html += '<div class="d-bead" style="width:' + b[2] + 'px;height:' + b[2] + 'px;margin:' + (-b[2] / 2) + 'px 0 0 ' + (-b[2] / 2) + 'px"></div>'; });
+  function leaf(cls, extra) { return '<svg viewBox="0 0 200 200" class="' + cls + '"><path d="' + LEAF + '"/>' + (extra || '') + '</svg>'; }
+  html += '<div class="d-body">' +
+    '<div class="d-drop"><div class="d-rim"></div><div class="p-glass"><div class="p-leaf">' + leaf('l-main') + '</div><div class="p-orb"></div></div></div>' +
+    '<div class="d-tile"><div class="t-depth"></div><div class="d-rim"></div><div class="t-glass"></div></div>' +
+    '<div class="d-clip"><div class="d-leaves">' + leaf('l-warm') + leaf('l-cool') +
+    '<svg viewBox="0 0 200 200" class="l-main"><defs><clipPath id="lc-intro"><path d="' + LEAF + '"/></clipPath></defs><path d="' + LEAF + '"/><path class="l-hi" clip-path="url(#lc-intro)" d="' + HI + '"/></svg>' +
+    '</div><div class="d-sheen"></div></div></div>';
+  stage.innerHTML = html;
+  var q = function (s) { return stage.querySelector(s); };
+  var E = { body: q('.d-body'), drop: q('.d-drop'), tile: q('.d-tile'), clip: q('.d-clip'), leaves: q('.d-leaves'),
+    warm: q('.d-leaves .l-warm'), cool: q('.d-leaves .l-cool'), sheen: q('.d-sheen'), bg: box.querySelector('.intro-bg') };
+  var rings = Array.prototype.slice.call(stage.querySelectorAll('.d-ring')), beads = Array.prototype.slice.call(stage.querySelectorAll('.d-bead'));
+
+  var k = 1, Y0 = -1300, target = { x: 0, y: 0, s: 0.08 };
+  function fit() { k = Math.min(innerWidth / 1080, innerHeight / 1920); stage.style.transform = 'scale(' + k.toFixed(4) + ')'; Y0 = -(innerHeight / 2 / k) - 320; }
+  function aim() {
+    var el = document.querySelector('.header-logo svg'); if (!el) return;
+    var r = el.getBoundingClientRect(), sT = (r.height / k) / 324.9;
+    target = { x: (r.left + r.width / 2 - innerWidth / 2) / k, y: (r.top + r.height / 2 - innerHeight / 2) / k + 10.5 * sT, s: sT };
+  }
+
+  /* One sample of every piece at real time r, from the same physics as the film */
+  function sample(real) {
+    var fall = seg(real, 0, HIT_R), t = real < HIT_R ? HIT * fall : HIT + (real - HIT_R) / SLOW;
+    var tau = t - HIT, tp = Math.max(tau, 0), s;
+    var dy = tau < 0 ? lerp(Y0, 0, fall * fall) : 0;
+    if (tau < 0) s = -0.22 * fall;
+    else if (tau < 0.06) s = lerp(-0.22, 0.3, eo(seg(t, HIT, HIT + 0.06)));
+    else { var u = tau - 0.06; s = 0.3 * Math.exp(-4.2 * u) * Math.cos(2 * Math.PI * 2.7 * u); }
+    var lens = 1 - eo(seg(t, HIT + 0.02, 1.35)), spread = eob(seg(t, HIT, 0.9), 1.6);
+    var ja = tau > 0 ? 0.07 * Math.sin(2 * Math.PI * 3.4 * tp) * Math.exp(-3.4 * tp) : 0, jt = 30 + 200 * tp;
+    var fp = eio(seg(real, F0, D)), g = 1 - eo(seg(real, F0, F0 + 0.4)), calm = 1 - fp;
+    var rot = Math.sin(t * 2.6) * 1.2 * eo(seg(t, HIT, 1.2)) * calm;
+    var sc = lerp(lerp(0.66, 1, spread) * (1 + 0.014 * Math.sin(t * Math.PI)), target.s, fp);
+    var swap = eo(seg(t, HIT, HIT + 0.32)), fs = lerp(0.82, 1, eob(seg(t, HIT, 1.0), 1.5));
+    var ab = (5 + 2.5 * Math.sin(t * 2.6) + 22 * lens + 90 * Math.abs(s)) * calm;
+    var sw = eio(seg(t, 0.95, 1.4)), fade = 1 - eo(seg(real, F0, F0 + 0.5)), life = seg(t, HIT, HIT + 0.75);
+    var o = {
+      body: { transform: 'translate(' + f(target.x * fp) + 'px,' + f(target.y * fp + dy) + 'px) rotate(' + f(rot) + 'deg) scale(' + f(sc * (1 + s)) + ',' + f(sc * (1 - s)) + ') rotate(' + f(jt) + 'deg) scale(' + f(1 + ja) + ',' + f(1 - ja) + ') rotate(' + f(-jt) + 'deg)' },
+      drop: { opacity: f(1 - eo(seg(t, HIT + 0.04, HIT + 0.4))) },
+      tile: { opacity: f(swap * g), transform: 'scale(' + f(fs) + ')' },
+      clip: { opacity: f(swap), transform: 'scale(' + f(fs) + ')' },
+      leaves: { transform: 'rotate(' + f((Math.sin(t * 2.2) * 2.5 + 12 * lens) * calm) + 'deg) scale(' + f(1 + 1.1 * lens) + ')' },
+      warm: { opacity: f(0.85 * calm), transform: 'translate(' + f(ab) + 'px,' + f(-ab * 0.5) + 'px)' },
+      cool: { opacity: f(0.85 * calm), transform: 'translate(' + f(-ab) + 'px,' + f(ab * 0.5) + 'px)' },
+      sheen: { opacity: f(Math.sin(Math.PI * sw) * g), transform: 'translateX(' + f(lerp(-120, 320, sw)) + '%) rotate(18deg)' },
+      bg: { opacity: f(fade) },
+      rings: rings.map(function (_, i) {
+        var ti = HIT + 0.09 * i, qq = seg(t, ti, ti + 0.95);
+        return { opacity: f(t >= ti ? (1 - eo(qq)) * (0.75 - 0.2 * i) * fade : 0), transform: 'scale(' + f(lerp(0.7, 1.9 + 0.3 * i, eo(qq))) + ')' };
+      }),
+      beads: beads.map(function (_, i) {
+        var rad = BEADS[i][0] * Math.PI / 180, d = 180 + BEADS[i][1] * (1 - Math.exp(-3 * tp)) / 3;
+        return { opacity: f(tau > 0 ? 1 - eo(life) : 0), transform: 'translate(' + (CX + Math.cos(rad) * d).toFixed(1) + 'px,' + (CY + Math.sin(rad) * d + 700 * tp * tp).toFixed(1) + 'px) scale(' + f(lerp(1, 0.35, life)) + ')' };
+      })
+    };
+    return o;
+  }
+
+  var anims = [], timers = [], done = false, started = false;
+  function glass() { window.dispatchEvent(new Event('mb-intro-glass')); }
+  function reveal() { root.classList.remove('intro-hide'); }
+  function release() { root.classList.remove('intro-hold'); }
+  function finish() {
+    if (done) return; done = true;
+    timers.forEach(clearTimeout); glass(); reveal(); release();
+    root.classList.remove('intro-on'); box.remove();
+  }
+  function build() {
+    fit(); aim();
+    var keys = { body: [], drop: [], tile: [], clip: [], leaves: [], warm: [], cool: [], sheen: [], bg: [], rings: rings.map(function () { return []; }), beads: beads.map(function () { return []; }) };
+    for (var n = 0; n < N; n++) {
+      var off = n / (N - 1), o = sample(off * D);
+      ['body', 'drop', 'tile', 'clip', 'leaves', 'warm', 'cool', 'sheen', 'bg'].forEach(function (key) { var kf = o[key]; kf.offset = off; keys[key].push(kf); });
+      o.rings.forEach(function (kf, i) { kf.offset = off; keys.rings[i].push(kf); });
+      o.beads.forEach(function (kf, i) { kf.offset = off; keys.beads[i].push(kf); });
+    }
+    var opts = { duration: D * 1000, easing: 'linear', fill: 'forwards' };
+    ['body', 'drop', 'tile', 'clip', 'leaves', 'warm', 'cool', 'sheen', 'bg'].forEach(function (key) { anims.push(E[key].animate(keys[key], opts)); });
+    rings.forEach(function (el, i) { anims.push(el.animate(keys.rings[i], opts)); });
+    beads.forEach(function (el, i) { anims.push(el.animate(keys.beads[i], opts)); });
+    stage.classList.add('play');
+  }
+  function start() {
+    if (started || done) return; started = true;
+    build();
+    if (window.__MB_INTRO_TEST) { anims.forEach(function (a) { a.pause(); a.currentTime = 0; }); return; }
+    timers.push(setTimeout(glass, (F0 - 0.35) * 1000));
+    timers.push(setTimeout(reveal, (F0 - 0.15) * 1000));
+    timers.push(setTimeout(release, F0 * 1000));
+    timers.push(setTimeout(finish, D * 1000 + 40));
+  }
+  function skip() {
+    if (done) return;
+    timers.forEach(clearTimeout); glass(); reveal(); release();
+    box.style.pointerEvents = 'none';
+    var a = box.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease-out', fill: 'forwards' });
+    a.onfinish = finish; setTimeout(finish, 400);
+  }
+  box.addEventListener('pointerdown', skip);
+  window.addEventListener('keydown', skip, { once: true });
+  /* Start once the Hub has loaded (or 700ms at most), two frames later so the first frame is never lost */
+  function go() { requestAnimationFrame(function () { requestAnimationFrame(start); }); }
+  if (document.readyState === 'complete') go(); else { window.addEventListener('load', go, { once: true }); setTimeout(go, 700); }
+  window.MBIntro = { start: start, seek: function (ms) { anims.forEach(function (a) { a.pause(); a.currentTime = ms; }); }, finish: finish };
+})();
+</script>
 <canvas id="glc" aria-hidden="true"></canvas>
 <div class="bg-canvas"></div>
 <div class="orb orb1"></div>
@@ -1213,7 +1417,7 @@
 <!-- HEADER -->
 <header class="site-header">
   <div class="header-inner">
-    <div class="header-logo">🌱</div>
+    <div class="header-logo" aria-hidden="true"><svg viewBox="0 0 200 200" aria-hidden="true"><path fill="#99C961" d="M85.64 200.08 C76.47 198.96 68.17 195.93 56.22 189.34 C44.12 182.67 34.99 178.86 24.97 176.30 C23.33 175.88 21.73 175.53 21.43 175.53 C21.13 175.53 20.82 175.43 20.74 175.31 C20.44 174.82 28.71 164.63 33.62 159.43 C42.27 150.26 49.74 144.21 57.30 140.24 C66.87 135.23 77.84 133.52 88.89 135.32 C98.17 136.83 107.73 140.88 116.23 146.90 C121.09 150.35 125.52 154.39 133.20 162.40 C136.14 165.46 137.36 166.34 139.66 167.05 C143.41 168.21 145.25 167.26 144.85 164.37 C144.66 162.99 143.33 160.55 142.03 159.20 C140.77 157.88 138.84 156.68 132.21 153.06 C125.83 149.58 122.63 147.63 118.38 144.61 C105.77 135.66 94.31 122.15 87.52 108.24 C80.90 94.68 79.24 81.44 82.04 64.54 C83.27 57.07 85.24 48.80 87.16 43.04 C91.88 28.85 100.71 14.54 111.83 3.06 C113.47 1.38 114.89 -0.00 114.99 -0.00 C115.10 -0.00 115.93 1.41 116.84 3.14 C117.75 4.87 118.70 6.59 118.95 6.95 C119.19 7.32 120.25 8.91 121.29 10.49 C125.60 17.03 133.31 26.65 140.81 34.83 C145.63 40.09 147.64 42.35 151.06 46.32 C161.95 58.98 169.34 69.40 172.41 76.39 C177.12 87.16 177.54 97.69 173.77 111.11 C171.24 120.13 169.02 125.11 162.12 137.20 C158.81 143.00 156.65 147.17 155.57 149.83 C153.52 154.87 153.06 159.39 154.27 162.76 C155.95 167.49 159.80 172.71 166.54 179.40 C169.87 182.71 175.49 187.71 178.33 189.89 C179.04 190.44 179.63 190.97 179.64 191.07 C179.65 191.18 174.54 191.26 168.30 191.26 L156.95 191.26 L155.81 188.99 C155.18 187.74 154.06 185.81 153.32 184.68 C148.89 177.98 144.31 174.78 139.16 174.78 C137.17 174.79 133.65 175.61 132.62 176.32 C132.19 176.62 130.15 178.51 128.09 180.52 C123.07 185.41 117.38 190.02 111.99 193.55 C105.13 198.04 97.65 200.29 89.92 200.21 C87.98 200.19 86.05 200.13 85.64 200.08 Z"/></svg></div>
     <div>
       <div class="header-name">Morning Belle</div>
       <div class="header-sub">Manager Hub</div>
@@ -1393,7 +1597,7 @@
     <span class="dot"></span>
     <span>Internal use only. Confidential</span>
     <span class="dot"></span>
-    <span>🌱</span>
+    <span class="foot-leaf"><svg viewBox="0 0 200 200" aria-hidden="true"><path fill="#99C961" d="M85.64 200.08 C76.47 198.96 68.17 195.93 56.22 189.34 C44.12 182.67 34.99 178.86 24.97 176.30 C23.33 175.88 21.73 175.53 21.43 175.53 C21.13 175.53 20.82 175.43 20.74 175.31 C20.44 174.82 28.71 164.63 33.62 159.43 C42.27 150.26 49.74 144.21 57.30 140.24 C66.87 135.23 77.84 133.52 88.89 135.32 C98.17 136.83 107.73 140.88 116.23 146.90 C121.09 150.35 125.52 154.39 133.20 162.40 C136.14 165.46 137.36 166.34 139.66 167.05 C143.41 168.21 145.25 167.26 144.85 164.37 C144.66 162.99 143.33 160.55 142.03 159.20 C140.77 157.88 138.84 156.68 132.21 153.06 C125.83 149.58 122.63 147.63 118.38 144.61 C105.77 135.66 94.31 122.15 87.52 108.24 C80.90 94.68 79.24 81.44 82.04 64.54 C83.27 57.07 85.24 48.80 87.16 43.04 C91.88 28.85 100.71 14.54 111.83 3.06 C113.47 1.38 114.89 -0.00 114.99 -0.00 C115.10 -0.00 115.93 1.41 116.84 3.14 C117.75 4.87 118.70 6.59 118.95 6.95 C119.19 7.32 120.25 8.91 121.29 10.49 C125.60 17.03 133.31 26.65 140.81 34.83 C145.63 40.09 147.64 42.35 151.06 46.32 C161.95 58.98 169.34 69.40 172.41 76.39 C177.12 87.16 177.54 97.69 173.77 111.11 C171.24 120.13 169.02 125.11 162.12 137.20 C158.81 143.00 156.65 147.17 155.57 149.83 C153.52 154.87 153.06 159.39 154.27 162.76 C155.95 167.49 159.80 172.71 166.54 179.40 C169.87 182.71 175.49 187.71 178.33 189.89 C179.04 190.44 179.63 190.97 179.64 191.07 C179.65 191.18 174.54 191.26 168.30 191.26 L156.95 191.26 L155.81 188.99 C155.18 187.74 154.06 185.81 153.32 184.68 C148.89 177.98 144.31 174.78 139.16 174.78 C137.17 174.79 133.65 175.61 132.62 176.32 C132.19 176.62 130.15 178.51 128.09 180.52 C123.07 185.41 117.38 190.02 111.99 193.55 C105.13 198.04 97.65 200.29 89.92 200.21 C87.98 200.19 86.05 200.13 85.64 200.08 Z"/></svg></span>
   </div>
 
 </div>
@@ -1620,7 +1824,11 @@ window.MBGlass = (function () {
   };
 })();
 
-if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGlass.ok) MBGlass.start();
+if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGlass.ok) {
+  /* The opening drop plays first, then the glass engine starts, so the two never compete for the phone */
+  if (document.documentElement.classList.contains('intro-on')) window.addEventListener('mb-intro-glass', function () { MBGlass.start(); }, { once: true });
+  else MBGlass.start();
+}
 </script>
 <script>
 /* Theme switch: a tap overrides the phone setting and is remembered on this device */
