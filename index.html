@@ -885,6 +885,26 @@
       transform 0.16s var(--ease-out);
   }
   #dock a svg { width: 21px; height: 21px; flex-shrink: 0; }
+  /* Today's Pre-Shift: the one coloured icon in the dock, always reachable */
+  #dock a .dock-emoji {
+    font-size: 19px; line-height: 21px; height: 21px;
+    flex-shrink: 0; display: block;
+    filter: drop-shadow(0 2px 5px rgba(251,175,65,0.5));
+    transition: transform 0.3s var(--ease-spring);
+  }
+  #dock a.dock-action { color: #a86a0e; }
+  #dock a.dock-action::before {
+    content: ''; position: absolute; inset: 3px; border-radius: 999px; z-index: -1;
+    background: radial-gradient(circle at 50% 36%, rgba(251,175,65,0.3), rgba(252,130,109,0.14) 62%, transparent 76%);
+    opacity: 0; transition: opacity 0.4s var(--ease-out);
+  }
+  #dock a.dock-action::before { opacity: 1; }
+  #dock a.dock-action:hover .dock-emoji { transform: scale(1.12) rotate(-3deg); }
+  html[data-theme="dark"] #dock a.dock-action { color: #fbaf41; }
+  #dock.compact a.dock-action, #dock.compact a.dock-action:not(.on) {
+    max-width: 90px; min-width: 44px; padding: 0 6px; opacity: 1; pointer-events: auto;
+  }
+  #dock.compact a.dock-action:not(.on) .dl { max-height: 0; opacity: 0; }
   #dock a .dl { white-space: nowrap; max-height: 14px; transition: max-height 0.4s var(--ease-liquid), opacity 0.25s ease; }
   #dock a:hover { color: var(--ink); }
   #dock a:active { transform: scale(0.9); }
@@ -897,6 +917,10 @@
   #dock.compact a:not(.on) { max-width: 0; min-width: 0; padding: 0; opacity: 0; pointer-events: none; }
   #dock.compact a .dl { max-height: 0; opacity: 0; }
   #dock.compact .dock-pill { top: 4px; bottom: 4px; }
+  @media (max-width: 430px) {
+    #dock a { min-width: 52px; padding: 0 3px; font-size: 9.5px; }
+    #dock { gap: 0; }
+  }
 
   /* ── LENS REFRACTION (Chromium only; Safari keeps the frosted glass) ── */
   .lens-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
@@ -1245,6 +1269,226 @@
   html.v32[data-theme="dark"] .cg-contact.mike   { background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02)), linear-gradient(rgba(251,175,65,0.16), rgba(251,175,65,0.16)), rgba(9,20,25,0.14); }
   /* The page now ends above the swirl, so the dock sits over it */
 </style>
+<style>
+  /* ══ TODAY'S PRE-SHIFT ══ */
+  .ps-scrim {
+    position: fixed; inset: 0; z-index: 900;
+    display: flex; align-items: center; justify-content: center;
+    padding: calc(18px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px));
+    background: rgba(28,48,58,0.34);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    opacity: 0; transition: opacity 0.42s var(--ease-out);
+  }
+  html[data-theme="dark"] .ps-scrim { background: rgba(6,16,20,0.56); }
+  .ps-scrim[hidden] { display: none; }
+  .ps-scrim.in { opacity: 1; }
+
+  .ps-sheet {
+    position: relative;
+    width: 100%; max-width: 440px;
+    max-height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 30px;
+    padding: 1.9rem 1.5rem 1.5rem;
+    isolation: isolate;
+    background:
+      linear-gradient(172deg,
+        rgba(255,255,255,0.56) 0%,
+        rgba(255,255,255,0.20) 50%,
+        rgba(255,255,255,0.34) 100%),
+      rgba(255,255,255,0.14);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
+    box-shadow: var(--glass-edge), 0 30px 70px rgba(28,48,58,0.3);
+    transform: translateY(16px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.6s var(--ease-liquid), opacity 0.42s var(--ease-out);
+  }
+  .ps-scrim.in .ps-sheet { transform: none; opacity: 1; }
+  html[data-theme="dark"] .ps-sheet {
+    background:
+      linear-gradient(172deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.08) 100%),
+      rgba(9,20,25,0.62);
+    box-shadow: var(--glass-edge), 0 30px 70px rgba(0,0,0,0.6);
+  }
+  .ps-sheet::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    padding: 1.4px; background: var(--lens-rim);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    opacity: 0.8; pointer-events: none; z-index: 4;
+  }
+
+  .ps-close {
+    position: absolute; top: 14px; right: 14px; z-index: 5;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.4);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 3px 10px rgba(40,70,84,0.14);
+    color: var(--ink-soft);
+    transition: transform 0.2s var(--ease-spring), color 0.2s ease;
+  }
+  .ps-close svg { width: 14px; height: 14px; }
+  .ps-close:hover { transform: scale(1.08); color: var(--ink); }
+  .ps-close:active { transform: scale(0.92); }
+  html[data-theme="dark"] .ps-close { background: rgba(255,255,255,0.1); box-shadow: none; }
+
+  .ps-head { position: relative; z-index: 1; }
+  .ps-leaf { width: 22px; height: 22px; display: block; margin-bottom: 0.7rem; opacity: 0.9; }
+  .ps-leaf svg { width: 100%; height: 100%; }
+  .ps-eyebrow {
+    font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.26em; color: rgba(90,138,42,0.8);
+  }
+  html[data-theme="dark"] .ps-eyebrow { color: #b9e08a; }
+  .ps-date {
+    font-size: 11px; font-weight: 500; color: var(--ink-faint);
+    letter-spacing: 0.04em; margin-top: 3px;
+  }
+  /* The Gardener's Guide banner: the star of the pre-shift */
+  .ps-source {
+    position: relative; z-index: 1;
+    margin-top: 1.15rem;
+    padding: 0.95rem 1.05rem 1rem;
+    border-radius: 20px;
+    background: linear-gradient(150deg, rgba(153,201,97,0.26), rgba(155,196,188,0.16));
+    box-shadow: inset 0 0 0 1px rgba(153,201,97,0.34), inset 0 1.5px 1px -1px rgba(255,255,255,0.9);
+    overflow: hidden;
+  }
+  html[data-theme="dark"] .ps-source {
+    background: linear-gradient(150deg, rgba(153,201,97,0.18), rgba(155,196,188,0.1));
+    box-shadow: inset 0 0 0 1px rgba(153,201,97,0.26);
+  }
+  .ps-source::before {
+    content: ''; position: absolute; top: -26px; right: -18px;
+    width: 96px; height: 96px; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(153,201,97,0.5), transparent 68%);
+  }
+  .ps-source-top {
+    display: flex; align-items: center; gap: 8px;
+    position: relative; z-index: 1;
+  }
+  .ps-source-top .ps-mini-leaf { width: 15px; height: 15px; flex: 0 0 auto; }
+  .ps-source-top .ps-mini-leaf svg { width: 100%; height: 100%; display: block; }
+  .ps-from {
+    font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.2em; color: rgba(90,138,42,0.9);
+  }
+  html[data-theme="dark"] .ps-from { color: #b9e08a; }
+  .ps-source-line {
+    position: relative; z-index: 1;
+    margin-top: 0.55rem;
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 14px; line-height: 1.5; color: var(--ink-soft);
+  }
+  .ps-tag {
+    display: inline-block; margin-top: 0.7rem;
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;
+    padding: 5px 10px; border-radius: 999px;
+    color: var(--ps-on, var(--mb-teal));
+    background: rgba(var(--ps-c, 60,92,104), 0.16);
+    box-shadow: inset 0 0 0 1px rgba(var(--ps-c, 60,92,104), 0.22);
+  }
+  html[data-theme="dark"] .ps-tag { color: var(--ps-on-dark, #a9c9d3); background: rgba(var(--ps-c, 60,92,104), 0.26); }
+  .ps-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 27px; font-weight: 600; line-height: 1.16;
+    color: var(--ink); margin: 0.5rem 0 0.55rem;
+    letter-spacing: -0.01em;
+  }
+  .ps-quote {
+    position: relative; z-index: 1;
+    font-size: 13.5px; line-height: 1.75; color: var(--ink-soft);
+    font-style: italic;
+  }
+  .ps-guide-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    position: relative; z-index: 1;
+    margin-top: 0.85rem;
+    padding: 7px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-decoration: none; color: #4f7a24;
+    background: rgba(255,255,255,0.46);
+    box-shadow: inset 0 0 0 1px rgba(153,201,97,0.4);
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .ps-guide-link svg { width: 12px; height: 12px; }
+  .ps-guide-link:active { transform: scale(0.96); }
+  html[data-theme="dark"] .ps-guide-link { color: #b9e08a; background: rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(153,201,97,0.3); }
+
+  .ps-block {
+    position: relative; z-index: 1;
+    margin-top: 1rem; padding: 1rem 1.05rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.26);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45), inset 0 1.5px 1px -1px rgba(255,255,255,0.9);
+  }
+  html[data-theme="dark"] .ps-block { background: rgba(255,255,255,0.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); }
+  .ps-block.one { background: rgba(153,201,97,0.2); box-shadow: inset 0 0 0 1px rgba(153,201,97,0.3); }
+  .ps-block.rec { background: rgba(255,222,92,0.22); box-shadow: inset 0 0 0 1px rgba(255,222,92,0.36); }
+  html[data-theme="dark"] .ps-block.one { background: rgba(153,201,97,0.17); box-shadow: inset 0 0 0 1px rgba(153,201,97,0.24); }
+  html[data-theme="dark"] .ps-block.rec { background: rgba(255,222,92,0.15); box-shadow: inset 0 0 0 1px rgba(255,222,92,0.25); }
+  .ps-block-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.22em;
+    color: var(--ink-soft); margin-bottom: 0.5rem;
+  }
+  .ps-block-label i {
+    width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto;
+    background: var(--mb-green); box-shadow: 0 0 8px rgba(153,201,97,0.9);
+  }
+  .ps-block.rec .ps-block-label i { background: var(--mb-yellow); box-shadow: 0 0 8px rgba(255,222,92,0.95); }
+  .ps-ask {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 15.5px; line-height: 1.4; color: var(--ink); margin-bottom: 0.45rem;
+  }
+  .ps-do { font-size: 13px; line-height: 1.65; color: var(--ink-soft); }
+
+  .ps-actions { display: flex; gap: 9px; margin-top: 1.15rem; position: relative; z-index: 1; }
+  .ps-btn {
+    flex: 1; min-height: 44px; border: none; cursor: pointer;
+    border-radius: 15px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+    color: var(--ink);
+    background: rgba(255,255,255,0.45);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6), 0 4px 14px rgba(40,70,84,0.12);
+    transition: transform 0.2s var(--ease-spring), background 0.25s ease;
+  }
+  .ps-btn:active { transform: scale(0.96); }
+  .ps-btn.primary {
+    color: #fff;
+    background: linear-gradient(150deg, #8dbf55, #5a8a2a);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), 0 8px 20px rgba(90,138,42,0.34);
+  }
+  html[data-theme="dark"] .ps-btn { background: rgba(255,255,255,0.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16); color: var(--ink); }
+  html[data-theme="dark"] .ps-btn.primary { color: #10231a; background: linear-gradient(150deg, #b9e08a, #8dbf55); }
+
+  .ps-shuffle {
+    display: block; margin: 0.85rem auto 0; position: relative; z-index: 1;
+    background: none; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-faint);
+    transition: color 0.2s ease;
+  }
+  .ps-shuffle:hover { color: var(--ink-soft); }
+
+  .ps-swap { animation: psSwap 0.5s var(--ease-out); }
+  @keyframes psSwap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 420px) {
+    .ps-sheet { padding: 1.6rem 1.2rem 1.25rem; border-radius: 26px; }
+    .ps-title { font-size: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ps-scrim, .ps-sheet { transition: none; }
+    .ps-swap { animation: none; }
+  }
+</style>
 </head>
 <body>
 
@@ -1589,6 +1833,7 @@
 <!-- THE DOCK -->
 <nav id="dock" aria-label="Hub sections">
   <span class="dock-pill" aria-hidden="true"></span>
+  <a href="#preshift" class="dock-action" id="psDock" data-action="preshift" data-c="251,175,65" data-on="#a86a0e" data-on-dark="#fbaf41" aria-label="Today's Pre-Shift"><span class="dock-emoji" aria-hidden="true">🌅</span><span class="dl">Pre-Shift</span></a>
   <a href="#tools" data-c="153,201,97" data-on="#5a8a2a" data-on-dark="#b9e08a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span class="dl">Tools</span></a>
   <a href="#leadership" data-c="255,222,92" data-on="#9a7a08" data-on-dark="#ffde5c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/></svg><span class="dl">Lead</span></a>
   <a href="#training" data-c="155,196,188" data-on="#4f8a7f" data-on-dark="#9bc4bc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5c3-1.5 6-1.5 9 0v13c-3-1.5-6-1.5-9 0z"/><path d="M21 6.5c-3-1.5-6-1.5-9 0v13c3-1.5 6-1.5 9 0z"/></svg><span class="dl">Train</span></a>
@@ -1905,9 +2150,10 @@ if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGl
   var dock = document.getElementById('dock');
   var pill = dock.querySelector('.dock-pill');
   var links = Array.prototype.slice.call(dock.querySelectorAll('a'));
-  var targets = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  var targets = links.map(function (a) { return a.dataset.action ? null : document.querySelector(a.getAttribute('href')); });
   function isDark() { return root.getAttribute('data-theme') === 'dark'; }
   var lastY = window.scrollY, current = -1, ticking = false, lockUntil = 0;
+  var firstSection = 0; for (var fi = 0; fi < links.length; fi++) { if (!links[fi].dataset.action) { firstSection = fi; break; } }
 
   function placePill() {
     var a = links[current]; if (!a) return;
@@ -1942,10 +2188,10 @@ if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGl
     root.style.setProperty('--hp', Math.min(Math.max(y / 140, 0), 1).toFixed(3));
 
     if (performance.now() < lockUntil) { lastY = y; return; }
-    var mark = window.innerHeight * 0.3, idx = 0;
+    var mark = window.innerHeight * 0.3, idx = firstSection;
     targets.forEach(function (t, n) { if (t && t.getBoundingClientRect().top < mark) idx = n; });
     var atBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 40;
-    if (atBottom) idx = targets.length - 1;
+    if (atBottom) { for (var n = targets.length - 1; n >= 0; n--) { if (targets[n]) { idx = n; break; } } }
     setActive(idx);
 
     if (y < 120 || atBottom) setCompact(false);
@@ -1959,6 +2205,7 @@ if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGl
 
   dock.addEventListener('click', function (e) {
     var a = e.target.closest('a');
+    if (a && a.dataset.action === 'preshift') { e.preventDefault(); if (window.MBPreShift) window.MBPreShift.open(); return; }
     if (dock.classList.contains('compact')) { e.preventDefault(); setCompact(false); return; }
     if (!a) return;
     e.preventDefault();
@@ -1985,6 +2232,217 @@ if (document.documentElement.classList.contains('v32') && window.MBGlass && MBGl
   }
   window.addEventListener('pageshow', function (e) { if (!e.persisted) restore(); });
   window.addEventListener('load', restore);
+})();
+</script>
+<!-- TODAY'S PRE-SHIFT -->
+<div class="ps-scrim" id="preshift" hidden>
+  <div class="ps-sheet" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="psTitle">
+    <button class="ps-close" id="psClose" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <div class="ps-head">
+      <span class="ps-leaf" aria-hidden="true"><svg viewBox="0 0 200 200"><path fill="#99C961" d="M85.64 200.08 C76.47 198.96 68.17 195.93 56.22 189.34 C44.12 182.67 34.99 178.86 24.97 176.30 C23.33 175.88 21.73 175.53 21.43 175.53 C21.13 175.53 20.82 175.43 20.74 175.31 C20.44 174.82 28.71 164.63 33.62 159.43 C42.27 150.26 49.74 144.21 57.30 140.24 C66.87 135.23 77.84 133.52 88.89 135.32 C98.17 136.83 107.73 140.88 116.23 146.90 C121.09 150.35 125.52 154.39 133.20 162.40 C136.14 165.46 137.36 166.34 139.66 167.05 C143.41 168.21 145.25 167.26 144.85 164.37 C144.66 162.99 143.33 160.55 142.03 159.20 C140.77 157.88 138.84 156.68 132.21 153.06 C125.83 149.58 122.63 147.63 118.38 144.61 C105.77 135.66 94.31 122.15 87.52 108.24 C80.90 94.68 79.24 81.44 82.04 64.54 C83.27 57.07 85.24 48.80 87.16 43.04 C91.88 28.85 100.71 14.54 111.83 3.06 C113.47 1.38 114.89 -0.00 114.99 -0.00 C115.10 -0.00 115.93 1.41 116.84 3.14 C117.75 4.87 118.70 6.59 118.95 6.95 C119.19 7.32 120.25 8.91 121.29 10.49 C125.60 17.03 133.31 26.65 140.81 34.83 C145.63 40.09 147.64 42.35 151.06 46.32 C161.95 58.98 169.34 69.40 172.41 76.39 C177.12 87.16 177.54 97.69 173.77 111.11 C171.24 120.13 169.02 125.11 162.12 137.20 C158.81 143.00 156.65 147.17 155.57 149.83 C153.52 154.87 153.06 159.39 154.27 162.76 C155.95 167.49 159.80 172.71 166.54 179.40 C169.87 182.71 175.49 187.71 178.33 189.89 C179.04 190.44 179.63 190.97 179.64 191.07 C179.65 191.18 174.54 191.26 168.30 191.26 L156.95 191.26 L155.81 188.99 C155.18 187.74 154.06 185.81 153.32 184.68 C148.89 177.98 144.31 174.78 139.16 174.78 C137.17 174.79 133.65 175.61 132.62 176.32 C132.19 176.62 130.15 178.51 128.09 180.52 C123.07 185.41 117.38 190.02 111.99 193.55 C105.13 198.04 97.65 200.29 89.92 200.21 C87.98 200.19 86.05 200.13 85.64 200.08 Z"/></svg></span>
+      <div class="ps-eyebrow">Today's Pre-Shift</div>
+      <div class="ps-date" id="psDate"></div>
+    </div>
+
+    <div id="psBody">
+      <div class="ps-source">
+        <div class="ps-source-top">
+          <span class="ps-mini-leaf" aria-hidden="true"><svg viewBox="0 0 200 200"><path fill="#99C961" d="M85.64 200.08 C76.47 198.96 68.17 195.93 56.22 189.34 C44.12 182.67 34.99 178.86 24.97 176.30 C23.33 175.88 21.73 175.53 21.43 175.53 C21.13 175.53 20.82 175.43 20.74 175.31 C20.44 174.82 28.71 164.63 33.62 159.43 C42.27 150.26 49.74 144.21 57.30 140.24 C66.87 135.23 77.84 133.52 88.89 135.32 C98.17 136.83 107.73 140.88 116.23 146.90 C121.09 150.35 125.52 154.39 133.20 162.40 C136.14 165.46 137.36 166.34 139.66 167.05 C143.41 168.21 145.25 167.26 144.85 164.37 C144.66 162.99 143.33 160.55 142.03 159.20 C140.77 157.88 138.84 156.68 132.21 153.06 C125.83 149.58 122.63 147.63 118.38 144.61 C105.77 135.66 94.31 122.15 87.52 108.24 C80.90 94.68 79.24 81.44 82.04 64.54 C83.27 57.07 85.24 48.80 87.16 43.04 C91.88 28.85 100.71 14.54 111.83 3.06 C113.47 1.38 114.89 -0.00 114.99 -0.00 C115.10 -0.00 115.93 1.41 116.84 3.14 C117.75 4.87 118.70 6.59 118.95 6.95 C119.19 7.32 120.25 8.91 121.29 10.49 C125.60 17.03 133.31 26.65 140.81 34.83 C145.63 40.09 147.64 42.35 151.06 46.32 C161.95 58.98 169.34 69.40 172.41 76.39 C177.12 87.16 177.54 97.69 173.77 111.11 C171.24 120.13 169.02 125.11 162.12 137.20 C158.81 143.00 156.65 147.17 155.57 149.83 C153.52 154.87 153.06 159.39 154.27 162.76 C155.95 167.49 159.80 172.71 166.54 179.40 C169.87 182.71 175.49 187.71 178.33 189.89 C179.04 190.44 179.63 190.97 179.64 191.07 C179.65 191.18 174.54 191.26 168.30 191.26 L156.95 191.26 L155.81 188.99 C155.18 187.74 154.06 185.81 153.32 184.68 C148.89 177.98 144.31 174.78 139.16 174.78 C137.17 174.79 133.65 175.61 132.62 176.32 C132.19 176.62 130.15 178.51 128.09 180.52 C123.07 185.41 117.38 190.02 111.99 193.55 C105.13 198.04 97.65 200.29 89.92 200.21 C87.98 200.19 86.05 200.13 85.64 200.08 Z"/></svg></span>
+          <span class="ps-from">From the Gardener's Guide</span>
+        </div>
+        <div class="ps-source-line">This is how we grow our culture. One chapter, one shift at a time.</div>
+        <span class="ps-tag" id="psTag"></span>
+        <h2 class="ps-title" id="psTitle"></h2>
+        <p class="ps-quote" id="psQuote"></p>
+        <a class="ps-guide-link" id="psGuide" href="https://morningbellebrunch.github.io/Gardeners-Guide/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v16H6.5A1.5 1.5 0 0 1 5 18.5z"/><path d="M9 9h6M9 13h4"/></svg>
+          <span id="psGuideLabel">Read the chapter</span>
+        </a>
+      </div>
+
+      <div class="ps-block one">
+        <div class="ps-block-label"><i></i>1% Better</div>
+        <div class="ps-ask">How can we be 1% better today than we were yesterday?</div>
+        <div class="ps-do" id="psOne"></div>
+      </div>
+
+      <div class="ps-block rec">
+        <div class="ps-block-label"><i></i>Recognition</div>
+        <div class="ps-ask">Who are we naming out loud today?</div>
+        <div class="ps-do" id="psRec"></div>
+      </div>
+    </div>
+
+    <div class="ps-actions">
+      <button class="ps-btn" id="psCopy" type="button">Copy pre-shift</button>
+      <button class="ps-btn primary" id="psGo" type="button">Run the shift</button>
+    </div>
+    <button class="ps-shuffle" id="psShuffle" type="button">Show a different focus</button>
+  </div>
+</div>
+
+<script>
+/* Today's Pre-Shift: one focus a day, pulled from the Gardener's Guide Roots and Cultivate chapters */
+(function () {
+  var FOCUS = [
+    { tag:'Chapter 03, Brand Roots', ch:'Chapter 03, Brand Roots', c:'153,201,97', on:'#5a8a2a', onDark:'#b9e08a',
+      title:'Classics Meet Innovation',
+      quote:'Familiar enough to comfort. Different enough to remember. Every dish is a craft decision, not a shortcut.',
+      one:'Pick one plate you send today and make it the best version anyone in this building has seen. Then do it again on the next one.',
+      rec:'Name the Gardener whose plates went out cleanest yesterday. Say the dish out loud.' },
+
+    { tag:'Chapter 03, Brand Roots', ch:'Chapter 03, Brand Roots', c:'60,92,104', on:'#3c5c68', onDark:'#a9c9d3',
+      title:'Uncommon Hospitality',
+      quote:'Not a script. A standard. The guest feels seen before they ask for anything.',
+      one:'One table today gets something they never asked for. Read the table, then do it.',
+      rec:'Name a Gardener who made a guest feel seen yesterday. Tell that table\u2019s story in one sentence.' },
+
+    { tag:'Chapter 03, Brand Roots', ch:'Chapter 03, Brand Roots', c:'251,175,65', on:'#a86a0e', onDark:'#fbaf41',
+      title:'Playfully Sophisticated',
+      quote:'We take the food seriously. We do not take ourselves seriously. Both are true at once.',
+      one:'Drop the autopilot greeting on your first table. Say something only you would say.',
+      rec:'Name the Gardener who brought the best energy yesterday and still had it when it got busy.' },
+
+    { tag:'Chapter 03, Brand Roots', ch:'Chapter 03, Brand Roots', c:'252,130,109', on:'#c94f3a', onDark:'#fc9a88',
+      title:'Rooted in the Neighborhood',
+      quote:'Morning Belle grows where it is planted. Each location belongs to its community.',
+      one:'Learn one regular\u2019s name today and use it before they leave.',
+      rec:'Name the Gardener who knows our regulars best. Ask them to teach the floor one name.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, Leadership Provides', c:'60,92,104', on:'#3c5c68', onDark:'#a9c9d3',
+      title:'Clear Direction',
+      quote:'Every Gardener knows where we are headed and their role in getting us there.',
+      one:'Give one number out loud today. Say what it means and who owns it.',
+      rec:'Name a Gardener who ran their section yesterday like they already knew the plan.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, Leadership Provides', c:'60,92,104', on:'#3c5c68', onDark:'#a9c9d3',
+      title:'Superb Preparation',
+      quote:'Every Gardener gets the understanding, training, and tools they need to be their very best.',
+      one:'Fix one thing that slowed us down yesterday before the doors open today.',
+      rec:'Name the Gardener whose station was set the best yesterday. Say what you saw.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, Leadership Provides', c:'60,92,104', on:'#3c5c68', onDark:'#a9c9d3',
+      title:'Unwavering Support',
+      quote:'Honest feedback, real accountability, and the support every Gardener needs to grow.',
+      one:'Give one piece of honest feedback today, in the moment, kindly and directly.',
+      rec:'Name a Gardener who took feedback yesterday and used it on the very next table.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, Leadership Provides', c:'155,196,188', on:'#4f8a7f', onDark:'#9bc4bc',
+      title:'Sense of Belonging',
+      quote:'Every Gardener feels genuinely valued and knows they belong here.',
+      one:'Talk to the Gardener you talk to least today. Not about work first.',
+      rec:'Name a newer Gardener and say one specific thing they are already doing well.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, We Ask of You', c:'153,201,97', on:'#5a8a2a', onDark:'#b9e08a',
+      title:'Teamwork',
+      quote:'Do your job well, ask for help before it is needed, and speak up for your team.',
+      one:'Ask for help one beat earlier than you normally would.',
+      rec:'Name the Gardener who ran to someone else\u2019s table yesterday without being asked.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, We Ask of You', c:'153,201,97', on:'#5a8a2a', onDark:'#b9e08a',
+      title:'Self-Responsibility',
+      quote:'Own everything you do, say, and achieve. No excuses. No blame. Just growth.',
+      one:'Own one miss out loud today before anyone else has to find it.',
+      rec:'Name a Gardener who owned something yesterday instead of explaining it away.' },
+
+    { tag:'Chapter 04, Cultivate', ch:'Chapter 04, Cultivate, We Ask of You', c:'153,201,97', on:'#5a8a2a', onDark:'#b9e08a',
+      title:'Own the Experience',
+      quote:'Insist on quality from yourself and deliver Uncommon Hospitality every shift.',
+      one:'Touch one thing on your way past that is not your job.',
+      rec:'Name the Gardener who caught the thing nobody else saw.' }
+  ];
+
+  var scrim = document.getElementById('preshift');
+  if (!scrim) return;
+  var sheet = scrim.querySelector('.ps-sheet');
+  var body  = document.getElementById('psBody');
+  var lastFocused = null;
+  var idx = 0;
+
+  function dayKey(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function dayIndex(d) {
+    return Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000) + (d.getFullYear() * 7);
+  }
+
+  function render(animate) {
+    var f = FOCUS[((idx % FOCUS.length) + FOCUS.length) % FOCUS.length];
+    sheet.style.setProperty('--ps-c', f.c);
+    sheet.style.setProperty('--ps-on', f.on);
+    sheet.style.setProperty('--ps-on-dark', f.onDark);
+    document.getElementById('psTag').textContent = f.tag;
+    document.getElementById('psTitle').textContent = f.title;
+    document.getElementById('psQuote').textContent = f.quote;
+    document.getElementById('psGuideLabel').textContent = 'Open ' + f.ch.split(',')[0] + ' in the Guide';
+    document.getElementById('psOne').textContent = f.one;
+    document.getElementById('psRec').textContent = f.rec;
+    if (animate) { body.classList.remove('ps-swap'); void body.offsetWidth; body.classList.add('ps-swap'); }
+  }
+
+  function open() {
+    var now = new Date();
+    document.getElementById('psDate').textContent = now.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+    idx = dayIndex(now);
+    render(false);
+    lastFocused = document.activeElement;
+    scrim.hidden = false;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(function () { scrim.classList.add('in'); });
+    setTimeout(function () { sheet.focus({ preventScroll: true }); }, 420);
+  }
+
+  function close() {
+    scrim.classList.remove('in');
+    document.body.style.overflow = '';
+    setTimeout(function () { scrim.hidden = true; }, 420);
+    try { localStorage.setItem('mb-preshift', dayKey(new Date())); } catch (e) {}
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  document.getElementById('psClose').addEventListener('click', close);
+  document.getElementById('psGo').addEventListener('click', close);
+  scrim.addEventListener('click', function (e) { if (e.target === scrim) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !scrim.hidden) close(); });
+
+  document.getElementById('psShuffle').addEventListener('click', function () { idx += 1; render(true); });
+
+  document.getElementById('psCopy').addEventListener('click', function () {
+    var f = FOCUS[((idx % FOCUS.length) + FOCUS.length) % FOCUS.length];
+    var d = new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+    var txt = 'TODAY\u2019S PRE-SHIFT, ' + d + '\n\n'
+            + 'FROM THE GARDENER\u2019S GUIDE, ' + f.ch + '\n'
+            + 'FOCUS: ' + f.title + '\n' + f.quote + '\n\n'
+            + '1% BETTER\nHow can we be 1% better today than we were yesterday?\n' + f.one + '\n\n'
+            + 'RECOGNITION\nWho are we naming out loud today?\n' + f.rec + '\n';
+    var btn = this;
+    function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy pre-shift'; }, 1800); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function () {});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+
+  window.MBPreShift = { open: open };
+
+  /* The tile reopens it any time */
+  var tile = document.getElementById('psTile');
+  if (tile) tile.addEventListener('click', function (e) { e.preventDefault(); open(); });
+
+  /* Once a day, automatically, after the opening drop has finished */
+  var seen = null;
+  try { seen = localStorage.getItem('mb-preshift'); } catch (e) {}
+  if (seen !== dayKey(new Date())) {
+    var wait = document.documentElement.classList.contains('intro-on') ? 3200 : 900;
+    setTimeout(open, wait);
+  }
 })();
 </script>
 </body>
